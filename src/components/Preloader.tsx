@@ -1,29 +1,89 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const PRELOADER_COOLDOWN_MS = 10 * 60 * 1000;
+
 const Preloader = () => {
-  const [step, setStep] = useState(0);
+  // Inisialisasi state dari sessionStorage untuk menentukan langkah animasi awal
+  const [step, setStep] = useState(() =>
+    typeof window !== "undefined" &&
+    window.sessionStorage.getItem("hasSeenFullPreloader") === "true"
+      ? 1
+      : 0
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const lastShownTime =
+      typeof window !== "undefined"
+        ? window.sessionStorage.getItem("lastPreloaderShown")
+        : null;
+    const currentTime = Date.now();
+
+    // Lewati preloader jika masih dalam masa cooldown
+    if (
+      lastShownTime &&
+      currentTime - Number(lastShownTime) < PRELOADER_COOLDOWN_MS
+    ) {
+      setIsLoading(false);
+      document.body.style.overflow = "";
+      return;
+    }
+
     document.body.style.overflow = "hidden";
 
-    const timers = [
-      setTimeout(() => setStep(1), 1200),
-      setTimeout(() => setStep(2), 2600),
-      setTimeout(() => {
-        setIsLoading(false);
-        document.body.style.overflow = "";
-      }, 3200),
-    ];
+    const timers: NodeJS.Timeout[] = [];
+
+    // Jika dimulai dari bentuk 'V' (step 1)
+    if (step === 1) {
+      timers.push(
+        setTimeout(() => {
+          setStep(2);
+        }, 1000) // V untuk menghilang
+      );
+      timers.push(
+        setTimeout(() => {
+          setIsLoading(false);
+          document.body.style.overflow = "";
+          window.sessionStorage.setItem(
+            "lastPreloaderShown",
+            Date.now().toString()
+          );
+        }, 1500) // Durasi total untuk animasi yang lebih pendek ini
+      );
+    } else {
+      // Jika dimulai dari bentuk '><' (step 0)
+      timers.push(
+        setTimeout(() => {
+          setStep(1); // >< menjadi V
+          // Atur flag agar lain kali kita mulai dari step 1
+          window.sessionStorage.setItem("hasSeenFullPreloader", "true");
+        }, 500)
+      );
+      timers.push(
+        setTimeout(() => {
+          setStep(2);
+        }, 1500) // V untuk menghilang
+      );
+      timers.push(
+        setTimeout(() => {
+          setIsLoading(false);
+          document.body.style.overflow = "";
+          window.sessionStorage.setItem(
+            "lastPreloaderShown",
+            Date.now().toString()
+          );
+        }, 2000) // Durasi total untuk animasi penuh
+      );
+    }
 
     return () => {
       timers.forEach(clearTimeout);
       document.body.style.overflow = "";
     };
-  }, []);
+  }, []); // Hanya berjalan sekali saat komponen dimuat
 
   return (
     <AnimatePresence>
@@ -55,11 +115,10 @@ const Preloader = () => {
                     opacity: 0,
                     scale: 3,
                     filter: "blur(25px)",
-                    transition: { duration: 0.7, ease: "easeOut" },
+                    transition: { duration: 0.7 },
                   }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
                 >
-                  {/* Left shape */}
+                  {/* LEFT SHAPE */}
                   <motion.path
                     initial={{ d: "M 25 25 L 45 50 L 25 75" }}
                     animate={{
@@ -68,10 +127,10 @@ const Preloader = () => {
                           ? "M 25 25 L 45 50 L 25 75"
                           : "M 25 25 L 37.5 50 L 50 75",
                     }}
-                    transition={{ duration: 1, ease: [0.65, 0, 0.35, 1] }}
+                    transition={{ duration: 1 }}
                   />
 
-                  {/* Right shape */}
+                  {/* RIGHT SHAPE */}
                   <motion.path
                     initial={{ d: "M 75 25 L 55 50 L 75 75" }}
                     animate={{
@@ -80,7 +139,7 @@ const Preloader = () => {
                           ? "M 75 25 L 55 50 L 75 75"
                           : "M 75 25 L 62.5 50 L 50 75",
                     }}
-                    transition={{ duration: 1, ease: [0.65, 0, 0.35, 1] }}
+                    transition={{ duration: 1 }}
                   />
                 </motion.svg>
               )}

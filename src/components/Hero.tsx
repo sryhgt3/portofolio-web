@@ -1,8 +1,33 @@
 "use client";
 
+
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Code2, User, Globe } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
+import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
+
+const socialLinks = [
+  {
+    name: 'GitHub',
+    icon: FaGithub,
+    url: 'https://github.com/sryhgt3',
+  },
+  {
+    name: 'LinkedIn',
+    icon: FaLinkedin,
+    url: 'https://www.linkedin.com/in/surya-haganta-81175a19b?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+  },
+  {
+    name: 'Email',
+    icon: Mail,
+    url: 'mailto:suryahaganta03@gmail.com',
+  },
+  {
+    name: 'Instagram',
+    icon: FaInstagram,
+    url: 'https://instagram.com/sryhgt3',
+  },
+];
 
 const Hero = () => {
   return (
@@ -55,13 +80,16 @@ const Hero = () => {
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </a>
           <div className="flex items-center gap-4 px-4 py-2">
-            {[Code2, User, Globe].map((Icon, i) => (
+            {socialLinks.map((link) => (
               <a
-                key={i}
-                href="#"
+                key={link.name}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 text-text-gray hover:text-white transition-colors"
+                aria-label={`Connect on ${link.name}`}
               >
-                <Icon size={24} />
+                <link.icon size={24} />
               </a>
             ))}
           </div>
